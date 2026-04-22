@@ -12,3 +12,4 @@ data
 checkpoints*
 results
 __pycache__/
+.idea/
