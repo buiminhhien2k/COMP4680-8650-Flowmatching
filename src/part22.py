@@ -55,14 +55,14 @@ class Model(nn.Module):
 
 def x_from_v(z_t, v_pred, t):
     # x = z_t - t v
-    return z_t - t * v_pred
+    return (1 - t) * v_pred + z_t
 
 
 def v_from_x(z_t, x_pred, t, eps_clip=1e-5):
     # v = (z_t - x) / t
     # clip t to avoid division near t=0
-    t_safe = t.clamp(min=eps_clip)
-    return (z_t - x_pred) / t_safe
+    t_safe = (1 - t).clamp(min=eps_clip)
+    return (x_pred - z_t) / (t_safe)
 
 
 # ============================================================
@@ -103,15 +103,17 @@ def train_one_model(
 
         # sample t and epsilon
         # clip away from exactly 0 to protect x->v conversion
-        t = torch.rand(B, 1, device=device).clamp(min=eps_clip, max=1.0 - eps_clip)
+        t = (torch.rand(B, 1, device=device)
+             # .clamp(min=eps_clip, max=1.0 - eps_clip)
+             )
         eps = torch.randn(B, D, device=device)
 
         # forward process
-        z_t = (1.0 - t) * x + t * eps
+        z_t = (1.0 - t) * eps + t * x
 
         # targets
         x_target = x
-        v_target = eps - x
+        v_target = (x_target - z_t) / (1 - t)
 
         # model output meaning depends on pred_type
         raw_pred = model(z_t, t)
@@ -167,10 +169,10 @@ def sample_euler(
     model.eval()
     z = torch.randn(num_samples, dim, device=device)
 
-    dt = -1.0 / num_steps   # go from t=1 to t=0
+    dt = 1.0 / num_steps   # go from t=1 to t=0
 
     for step in range(num_steps):
-        t_value = 1.0 + step * dt
+        t_value = 0 + step * dt
         t = torch.full((num_samples, 1), t_value, device=device).clamp(min=eps_clip)
 
         raw_pred = model(z, t)
@@ -268,7 +270,7 @@ def parse_args():
     parser.add_argument("--num-samples", type=int, default=1024)
     parser.add_argument("--print-every", type=int, default=1000)
     parser.add_argument("--eps-clip", type=float, default=2e-02)
-    parser.add_argument("--save-dir", type=str, default="figures_part22")
+    parser.add_argument("--save-dir", type=str, default="results/figures_part22")
     parser.add_argument("--ckpt-dir", type=str, default="checkpoints_part22")
 
     return parser.parse_args()

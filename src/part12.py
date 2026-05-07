@@ -8,6 +8,7 @@ import torch.nn.functional as F
 
 from dataloader import get_dataloader
 
+RESULTS_DIR = "results/figures_part12"
 
 # ============================================================
 # 1. Model
@@ -106,7 +107,7 @@ def train_one_model(
 
         if step % print_every == 0:
             avg_loss = sum(losses[-print_every:]) / print_every
-            vis_losses.append(loss.item())
+            vis_losses.append(avg_loss)
             print(f"[{dataset_name}] step {step:6d} | loss = {avg_loss:.6f}")
 
     return model, vis_losses, data_loader
@@ -143,7 +144,7 @@ def sample_euler(
 # 4. Plotting
 # ============================================================
 
-def plot_loss(losses, dataset_name, save_dir="figures_part12", interval=1000):
+def plot_loss(losses, dataset_name, save_dir=RESULTS_DIR, interval=1000):
     os.makedirs(save_dir, exist_ok=True)
 
     plt.figure(figsize=(6, 4))
@@ -157,7 +158,7 @@ def plot_loss(losses, dataset_name, save_dir="figures_part12", interval=1000):
     # plt.show()
 
 
-def plot_ground_truth_vs_generated(data_loader, generated_samples, dataset_name, save_dir="figures_part12"):
+def plot_ground_truth_vs_generated(data_loader, generated_samples, dataset_name, save_dir=RESULTS_DIR):
     os.makedirs(save_dir, exist_ok=True)
 
     # take one batch of real samples for display

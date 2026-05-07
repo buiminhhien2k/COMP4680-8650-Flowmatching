@@ -1,6 +1,7 @@
 import itertools
 import subprocess
 import os
+import sys
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
 datasets = ["swiss_roll", "gaussians", "circles"]
@@ -10,7 +11,7 @@ losses = ["x", "v"]
 
 for dataset, dim, pred, loss in itertools.product(datasets, dims, preds, losses):
     cmd = [
-        "python", "./src/part2.2.py",
+        sys.executable, "./src/part2.2.py",
         "--dataset", dataset,
         "--dim", str(dim),
         "--pred-type", pred,
